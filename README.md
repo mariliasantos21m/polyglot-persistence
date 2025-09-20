@@ -26,3 +26,10 @@ Além disso, a aplicação incorpora **recursos de geoprocessamento**, manipulan
 - **Linguagem de programação:** [especificar linguagem usada, ex: Python, Java, C#]  
 - **Manipulação de JSON:** Para geoprocessamento e integração com bancos NoSQL  
 - **Bibliotecas de apoio:** [listar bibliotecas relevantes, ex: PyMongo, GeoJSON, SQLite3]
+
+---
+
+## Execução
+
+1. Executar servidor http: `uvicorn api:app --reload`
+2. Excutar streamlit: `streamlit run app.py`
