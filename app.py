@@ -21,6 +21,40 @@ select_city = st.sidebar.multiselect("Cidade", options=city_options, format_func
 
 button_search_enable = bool(select_country or select_state or select_city) 
 
+with st.expander("Inserir novo ponto"):
+    with st.form("insert_form"):
+        name = st.text_input("Nome", value="Ponto de Interesse")
+        category  = st.text_input("Categoria", value="poi")
+        long  = st.number_input("Longitude")
+        latv = st.number_input("Latitude")
+        props = st.text_area("Propriedades (JSON)", value='{"rating": 4.5}')
+        country = st.text_input("País", value="")
+        state = st.text_input("Estado", value="")
+        city = st.text_input("Cidade", value="")
+        submitted = st.form_submit_button("Inserir")
+        if submitted:
+            try:
+                props_dict = json.loads(props) if props.strip() else {}
+                props_dict['city'] = city
+                props_dict['state'] = state
+                props_dict['countr'] = country
+            except Exception as e:
+                st.error(f"JSON inválido em Propriedades: {e}")
+                st.stop()
+                
+            body = {
+                "name": name,
+                "category": category,
+                "properties": props_dict,
+                "geometry": {"type":"Point", "coordinates":[long, latv]},
+                "city": city,
+                "state": state,
+                "country": country
+            }
+            API.create_location(body)
+
+st.write("Filtre para visualizar os pontos no mapa.")
+
 if st.sidebar.button("Buscar", disabled= not button_search_enable):
     params= {
         "city": [city['name'] for city in select_city] if select_city else None,
@@ -85,5 +119,3 @@ if st.sidebar.button("Buscar", disabled= not button_search_enable):
             tooltip={"text": "{name}\n{category}"}
         ))
     
-
-

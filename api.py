@@ -5,6 +5,7 @@ from mongo.seed_data import run_seeders as run_seeders_mongo
 import sqlite.query as sqlite_querys 
 import mongo.query as mongo_querys 
 from typing import Optional, List
+from dtos.location import Location
 
 app = FastAPI()
 app.add_middleware(
@@ -48,3 +49,11 @@ def get_locations(
         "limit": limit
     }
     return mongo_querys.get_locations(params)
+
+@app.post("/location")
+def get_locations(location: Location):
+    try:
+        mongo_querys.create_location(location)
+        sqlite_querys.create(location.city, location.state, location.country)
+    except Exception as e:
+        raise

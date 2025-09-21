@@ -43,3 +43,12 @@ def get_locations(params):
     except requests.RequestException as e:
         st.error(f"Erro ao buscar locais: {e}")
         return []
+
+def create_location(body):
+    try:
+        response = requests.post(f"{API_URL}/location", json=body)
+        response.raise_for_status()
+        st.success("Registro inserido com sucesso! Clique em Recarregar dados.")
+    except requests.RequestException as e:
+        st.error(f"Erro ao salvar local: {e}")
+        return 

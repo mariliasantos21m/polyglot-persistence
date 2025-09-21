@@ -1,4 +1,5 @@
 from mongo.db_mongo import getMongoConnection
+from dtos.location import Location
 
 def serialize(doc):
     """
@@ -33,4 +34,16 @@ def get_locations(params):
     cursor= db.locations.find(query)
     return [serialize(d) for d in cursor]
 
+def create_location(location: Location):
+    db = getMongoConnection()
+
+    feature = {
+        "name": location.name,
+        "category": location.category,
+        "properties": location.properties,
+        "geometry": location.geometry.model_dump(),
+    }
     
+    res= db.locations.insert_one(feature)
+    feature["_id"] = res.inserted_id
+    return serialize(feature)
