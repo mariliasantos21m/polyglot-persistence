@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 from sqlite.seed_data import run_seeders
 from sqlite.query import get_countries as get_countries_query
@@ -21,11 +21,12 @@ def get_countries():
     return [{"id": row.id, "name": row.name} for row in result]
 
 @app.get("/states")
-def get_states():
-    result= get_states_query()
+def get_states(countries: list[int] = Query(...)):
+    print("teste", countries)
+    result= get_states_query(countries)
     return [{"id": row.id, "name": row.name} for row in result]
 
 @app.get("/cities")
-def get_cities():
-    result= get_cities_query()
+def get_cities(states: list[int] = Query(...)):
+    result= get_cities_query(states)
     return [{"id": row.id, "name": row.name} for row in result]
