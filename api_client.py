@@ -34,3 +34,12 @@ def get_cities(states:list[int]):
     except requests.RequestException as e:
         st.error(f"Erro ao buscar cidades: {e}")
         return []
+
+def get_locations(params):
+    try:
+        response = requests.get(f"{API_URL}/locations", params=params)
+        response.raise_for_status()
+        return response.json()
+    except requests.RequestException as e:
+        st.error(f"Erro ao buscar locais: {e}")
+        return []

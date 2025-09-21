@@ -3,6 +3,7 @@ from sqlite.db_sqlite import get_sqlite_engine, metadata
 from sqlite.tables import tb_countries, tb_states, tb_cities
 
 def run_seeders():
+    print("AQUI SEEDER SQLITE")
     engine = get_sqlite_engine()
     metadata.drop_all(engine)
     metadata.create_all(engine)

@@ -1,9 +1,10 @@
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Query, Body
 from fastapi.middleware.cors import CORSMiddleware
-from sqlite.seed_data import run_seeders
-from sqlite.query import get_countries as get_countries_query
-from sqlite.query import get_states as get_states_query
-from sqlite.query import get_cities as get_cities_query
+from sqlite.seed_data import run_seeders as run_seeders_sqlite
+from mongo.seed_data import run_seeders as run_seeders_mongo
+import sqlite.query as sqlite_querys 
+import mongo.query as mongo_querys 
+from typing import Optional, List
 
 app = FastAPI()
 app.add_middleware(
@@ -13,20 +14,37 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-run_seeders()
+
+run_seeders_sqlite()
+run_seeders_mongo()
 
 @app.get("/countries")
 def get_countries():
-    result= get_countries_query()
+    result= sqlite_querys.get_countries()
     return [{"id": row.id, "name": row.name} for row in result]
 
 @app.get("/states")
 def get_states(countries: list[int] = Query(...)):
     print("teste", countries)
-    result= get_states_query(countries)
+    result= sqlite_querys.get_states(countries)
     return [{"id": row.id, "name": row.name} for row in result]
 
 @app.get("/cities")
 def get_cities(states: list[int] = Query(...)):
-    result= get_cities_query(states)
+    result= sqlite_querys.get_cities(states)
     return [{"id": row.id, "name": row.name} for row in result]
+
+@app.get("/locations")
+def get_locations(
+    city: Optional[List[str]] = Query(None),
+    state: Optional[List[str]] = Query(None),
+    country: Optional[List[str]] = Query(None),
+    limit: Optional[int] = 100
+):
+    params = {
+        "city": city, 
+        "state": state, 
+        "country": country,
+        "limit": limit
+    }
+    return mongo_querys.get_locations(params)
