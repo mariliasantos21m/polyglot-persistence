@@ -8,18 +8,22 @@ st.set_page_config(page_title="Geo Dashboard", layout="wide")
 st.title("GeoJSON Dashboard com MongoDB")
 st.sidebar.header("Filtros")
 
+location_options =  API.get_locations({})
+select_location = st.sidebar.selectbox("Local", options=location_options, format_func=lambda x:x['name'])
+
 country_data = API.get_countries()
-select_country = st.sidebar.multiselect("País", options=country_data, format_func=lambda x:x['name'])
+select_country = st.sidebar.multiselect("País", options=country_data, format_func=lambda x:x['name'], disabled= bool(select_location))
 
 country_ids = [country['id'] for country in select_country] if select_country else []
 state_options = API.get_states(country_ids) if country_ids else []
-select_state = st.sidebar.multiselect("Estado", options=state_options, format_func=lambda x:x['name'])
+select_state = st.sidebar.multiselect("Estado", options=state_options, format_func=lambda x:x['name'], disabled= bool(select_location))
 
 state_ids = [state['id'] for state in select_state] if select_state else []
 city_options = API.get_cities(state_ids) if state_ids else []
-select_city = st.sidebar.multiselect("Cidade", options=city_options, format_func=lambda x:x['name'])
+select_city = st.sidebar.multiselect("Cidade", options=city_options, format_func=lambda x:x['name'], disabled= bool(select_location))
 
-button_search_enable = bool(select_country or select_state or select_city) 
+
+button_search_enable = bool(select_country or select_state or select_city or select_location) 
 
 # STATES
 st.session_state["select_country"] = select_country
@@ -69,12 +73,15 @@ with st.expander("Inserir novo ponto", expanded= st.session_state.expander_open)
 st.write("Filtre para visualizar os pontos no mapa.")
 
 if st.sidebar.button("Buscar", disabled= not button_search_enable):
+    print('select_location', select_location)
     params= {
+        "id": select_location['id'] if select_location else None,
         "city": [city['name'] for city in select_city] if select_city else None,
         "state": [state['name'] for state in select_state] if select_state else None,
         "country": [country['name'] for country in select_country] if select_country else None
     }
     response= API.get_locations(params)
+    print("response", response)
     if(len(response) > 0):
         points = [d for d in response if d.get("geometry",{}).get("type") == "Point"]
         lines = [d for d in response if d.get("geometry",{}).get("type") == "LineString"]

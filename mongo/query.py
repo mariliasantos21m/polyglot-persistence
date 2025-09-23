@@ -1,5 +1,6 @@
 from mongo.db_mongo import getMongoConnection
 from dtos.location import Location
+from bson import ObjectId
 
 def serialize(doc):
     """
@@ -18,6 +19,7 @@ def serialize(doc):
     return doc
 
 def get_locations(params):
+    print("paramsss", params)
     db = getMongoConnection()
     if db is None: return []
 
@@ -29,6 +31,8 @@ def get_locations(params):
         query["properties.state"] = {"$in": params["state"]}
     if params["country"]:
         query["properties.country"] = {"$in": params["country"]}
+    if params["id"]:
+        query["_id"] = ObjectId(params["id"])
 
     cursor= db.locations.find(query)
     # cursor= db.locations.find()

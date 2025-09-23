@@ -34,12 +34,14 @@ def get_locations(
     city: Optional[List[str]] = Query(None),
     state: Optional[List[str]] = Query(None),
     country: Optional[List[str]] = Query(None),
+    id: Optional[str] = Query(None),
     limit: Optional[int] = 100
 ):
     params = {
         "city": city, 
         "state": state, 
         "country": country,
+        "id": id, 
         "limit": limit
     }
     test= mongo_querys.get_locations(params)
