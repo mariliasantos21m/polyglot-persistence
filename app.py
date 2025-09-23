@@ -21,23 +21,31 @@ select_city = st.sidebar.multiselect("Cidade", options=city_options, format_func
 
 button_search_enable = bool(select_country or select_state or select_city) 
 
-with st.expander("Inserir novo ponto"):
+# STATES
+st.session_state["select_country"] = select_country
+st.session_state["select_state"] = select_state
+st.session_state["select_city"] = select_city
+
+if "expander_open" not in st.session_state:
+    st.session_state.expander_open = False
+
+with st.expander("Inserir novo ponto", expanded= st.session_state.expander_open):
     with st.form("insert_form"):
-        name = st.text_input("Nome", value="Ponto de Interesse")
-        category  = st.text_input("Categoria", value="poi")
+        name = st.text_input("Nome", value="")
+        category  = st.text_input("Categoria", value="")
         long  = st.number_input("Longitude")
         latv = st.number_input("Latitude")
-        props = st.text_area("Propriedades (JSON)", value='{"rating": 4.5}')
         country = st.text_input("País", value="")
         state = st.text_input("Estado", value="")
         city = st.text_input("Cidade", value="")
+        props = st.text_area("Propriedades (JSON)", value='{"rating": 4.5}')
         submitted = st.form_submit_button("Inserir")
         if submitted:
             try:
                 props_dict = json.loads(props) if props.strip() else {}
                 props_dict['city'] = city
                 props_dict['state'] = state
-                props_dict['countr'] = country
+                props_dict['country'] = country
             except Exception as e:
                 st.error(f"JSON inválido em Propriedades: {e}")
                 st.stop()
@@ -53,6 +61,11 @@ with st.expander("Inserir novo ponto"):
             }
             API.create_location(body)
 
+            st.session_state.expander_open = False
+            st.session_state["select_country"] = []
+            st.session_state["select_state"] = []
+            st.session_state["select_city"] = []
+
 st.write("Filtre para visualizar os pontos no mapa.")
 
 if st.sidebar.button("Buscar", disabled= not button_search_enable):
@@ -62,24 +75,11 @@ if st.sidebar.button("Buscar", disabled= not button_search_enable):
         "country": [country['name'] for country in select_country] if select_country else None
     }
     response= API.get_locations(params)
-    print(response)
     if(len(response) > 0):
         points = [d for d in response if d.get("geometry",{}).get("type") == "Point"]
         lines = [d for d in response if d.get("geometry",{}).get("type") == "LineString"]
         polys  = [d for d in response if d.get("geometry",{}).get("type") == "Polygon"]
     
-        # Tabela de pontos com o pandas
-        df_points = pd.DataFrame([{
-            "name": d.get("name"),
-            "category": d.get("category"),
-            "lng": d["geometry"]["coordinates"][0],
-            "lat": d["geometry"]["coordinates"][1],
-            "properties": json.dumps(d.get("properties",{}), ensure_ascii=False)
-        } for d in points])
-
-        with st.expander("Ver tabela de pontos"):
-            st.dataframe(df_points, use_container_width=True, hide_index=True)
-
         # Map center
         if points:
             center = [points[0]["geometry"]["coordinates"][1], points[0]["geometry"]["coordinates"][0]]
@@ -96,9 +96,9 @@ if st.sidebar.button("Buscar", disabled= not button_search_enable):
                 "ScatterplotLayer",
                 data=df_geo,
                 get_position=["lon","lat"],
-                get_radius=75,
+                get_radius=50,
                 pickable=True,
-                get_fill_color=[255, 0, 0, 200]  # vermelho com transparência
+                get_fill_color=[150, 0, 20, 200]  # vermelho com transparência
             ))
 
         if lines or polys:
@@ -118,4 +118,6 @@ if st.sidebar.button("Buscar", disabled= not button_search_enable):
             layers=layers,
             tooltip={"text": "{name}\n{category}"}
         ))
+
+        st.session_state.expander_open = False
     

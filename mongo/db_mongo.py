@@ -20,5 +20,4 @@ def getMongoConnection():
         #se esse banco de dados não existir ele será criado no momento de inserção do dado
         return client['geo_app']
     except Exception as e:
-        print(f"Erro ao conectar com o MongoDB: {e}")
         return None

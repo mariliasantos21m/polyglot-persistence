@@ -30,8 +30,8 @@ def get_locations(params):
     if params["country"]:
         query["properties.country"] = {"$in": params["country"]}
 
-    print("query", query)
     cursor= db.locations.find(query)
+    # cursor= db.locations.find()
     return [serialize(d) for d in cursor]
 
 def create_location(location: Location):

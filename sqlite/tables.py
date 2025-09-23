@@ -1,5 +1,6 @@
-from sqlalchemy import Table, Column, Integer, String, ForeignKey
-from sqlite.db_sqlite import metadata;
+from sqlalchemy import MetaData, Table, Column, Integer, String, ForeignKey
+
+metadata = MetaData()
 
 tb_countries = Table(
     'countries', metadata,

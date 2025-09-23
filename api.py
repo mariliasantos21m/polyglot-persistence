@@ -1,7 +1,5 @@
 from fastapi import FastAPI, Query, Body
 from fastapi.middleware.cors import CORSMiddleware
-from sqlite.seed_data import run_seeders as run_seeders_sqlite
-from mongo.seed_data import run_seeders as run_seeders_mongo
 import sqlite.query as sqlite_querys 
 import mongo.query as mongo_querys 
 from typing import Optional, List
@@ -16,9 +14,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-run_seeders_sqlite()
-run_seeders_mongo()
-
 @app.get("/countries")
 def get_countries():
     result= sqlite_querys.get_countries()
@@ -26,7 +21,6 @@ def get_countries():
 
 @app.get("/states")
 def get_states(countries: list[int] = Query(...)):
-    print("teste", countries)
     result= sqlite_querys.get_states(countries)
     return [{"id": row.id, "name": row.name} for row in result]
 
@@ -48,7 +42,8 @@ def get_locations(
         "country": country,
         "limit": limit
     }
-    return mongo_querys.get_locations(params)
+    test= mongo_querys.get_locations(params)
+    return test
 
 @app.post("/location")
 def get_locations(location: Location):
