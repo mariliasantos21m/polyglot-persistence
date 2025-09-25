@@ -3,6 +3,7 @@ import api_client as API
 import pandas as pd
 import pydeck as pdk
 import json
+from geopy.distance import geodesic
 
 # dados api 
 location_options =  API.get_locations({})
@@ -16,35 +17,38 @@ if "expander_open" not in st.session_state:
 
 with st.expander("Cadastrar Novo Ponto", expanded= st.session_state.expander_open):
     with st.form("insert_form"):
-        name = st.text_input("Nome", value="")
-        long  = st.number_input("Longitude")
-        latv = st.number_input("Latitude")
-        country = st.text_input("País", value="")
-        state = st.text_input("Estado", value="")
-        city = st.text_input("Cidade", value="")
+        name = st.text_input("Nome *")
+        latv = st.number_input("Latitude *")
+        long  = st.number_input("Longitude *")
+        country = st.text_input("País *")
+        state = st.text_input("Estado *")
+        city = st.text_input("Cidade *")
         props = st.text_area("Propriedades (JSON)", value='')
         submitted = st.form_submit_button("Inserir")
         if submitted:
-            try:
-                props_dict = json.loads(props) if props.strip() else {}
-                props_dict['city'] = city
-                props_dict['state'] = state
-                props_dict['country'] = country
-            except Exception as e:
-                st.error(f"JSON inválido em Propriedades: {e}")
-                st.stop()
-                
-            body = {
-                "name": name,
-                "properties": props_dict,
-                "geometry": {"type":"Point", "coordinates":[long, latv]},
-                "city": city,
-                "state": state,
-                "country": country
-            }
-            API.create_location(body)
+            if(not name or not latv or not long or not country or not state or not city):
+                st.error("Preencha todos os campos obriatórios para cadastrar um novo ponto.")
+            else:
+                try:
+                    props_dict = json.loads(props) if props.strip() else {}
+                    props_dict['city'] = city
+                    props_dict['state'] = state
+                    props_dict['country'] = country
+                except Exception as e:
+                    st.error(f"JSON inválido em Propriedades: {e}")
+                    st.stop()
+                    
+                body = {
+                    "name": name,
+                    "properties": props_dict,
+                    "geometry": {"type":"Point", "coordinates":[long, latv]},
+                    "city": city,
+                    "state": state,
+                    "country": country
+                }
+                API.create_location(body)
 
-            st.session_state.expander_open = False
+                st.session_state.expander_open = False
 
 with st.expander("Consulta Integrada", expanded= st.session_state.expander_open):
     st.write("Filtre para visualizar os pontos no mapa.")
@@ -98,7 +102,13 @@ with st.expander("Consulta Integrada", expanded= st.session_state.expander_open)
             ))
     
 with st.expander("Geoprocessamento", expanded= st.session_state.expander_open):
-    select_location = st.selectbox("Local", options=location_options, format_func=lambda x:x['name'])
+    select_location = st.selectbox(
+        "Local", 
+        options=location_options, 
+        format_func=lambda x:x['name'], 
+        index=None, 
+        placeholder="Selecione um local"
+    )
     search_radius = st.slider("Raio de distância(Km)", 0, 100, 10)
 
 
@@ -129,7 +139,35 @@ with st.expander("Geoprocessamento", expanded= st.session_state.expander_open):
                 ))
 
             st.pydeck_chart(pdk.Deck(
-                initial_view_state=pdk.ViewState(latitude=center[0], longitude=center[1], zoom=11, pitch=0),
+                initial_view_state=pdk.ViewState(latitude=center[0], longitude=center[1], zoom=15, pitch=0),
                 layers=layers,
-                tooltip={"text": "{name}\n{category}"}
+                tooltip={"text": "{name}"}
             ))
+
+with st.expander("Distância entre pontos", expanded= st.session_state.expander_open):
+    select_location1 = st.selectbox(
+        "Local 1", 
+        options=location_options, 
+        format_func=lambda x:x['name'],
+        index= None,
+        placeholder= "Selecione o Local 1"
+    )
+    select_location2 = st.selectbox(
+        "Local 2", 
+        options=location_options, 
+        format_func=lambda x:x['name'],
+        index= None,
+        placeholder= "Selecione o Local 1"
+    )
+
+    disabled_button_calculate_distance = True
+    if(select_location1 and select_location2 and select_location1['id'] == select_location2["id"]):
+        disabled_button_calculate_distance = True
+        st.error("Os locais são iguais! Selecione locais diferentes para o cálculo.")
+    else:
+        disabled_button_calculate_distance = False
+
+    if st.button(key ='button_calculate_distance', label= "Calcular", disabled= disabled_button_calculate_distance):
+       distance = geodesic(select_location1["geometry"]["coordinates"], select_location2["geometry"]["coordinates"]).km
+
+       st.write(f"A distância entre os pontos é de {distance:.2f}km.")
