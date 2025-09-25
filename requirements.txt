@@ -1,0 +1,6 @@
+streamlit
+fastapi
+uvicorn
+pymongo
+geopy
+pydeck
