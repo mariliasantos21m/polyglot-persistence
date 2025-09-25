@@ -52,3 +52,12 @@ def create_location(body):
     except requests.RequestException as e:
         st.error(f"Erro ao salvar local: {e}")
         return 
+    
+def get_locations_search_radius(params):
+    try:
+        response = requests.get(f"{API_URL}/locations/search-radius", params=params)
+        response.raise_for_status()
+        return response.json()
+    except requests.RequestException as e:
+        st.error(f"Erro ao buscar locais por raio de distância: {e}")
+        return []

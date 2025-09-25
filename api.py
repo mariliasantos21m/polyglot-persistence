@@ -44,8 +44,16 @@ def get_locations(
         "id": id, 
         "limit": limit
     }
-    test= mongo_querys.get_locations(params)
-    return test
+    result= mongo_querys.get_locations(params)
+    return result
+
+@app.get("/locations/search-radius")
+def get_locations(
+    id: str,
+    search_radius: int 
+):
+    response= mongo_querys.get_locations_by_search_radius(id, search_radius)
+    return response
 
 @app.post("/location")
 def get_locations(location: Location):

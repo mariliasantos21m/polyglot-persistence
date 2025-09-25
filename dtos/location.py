@@ -4,7 +4,6 @@ from dtos.geometry import Geometry
 
 class Location(BaseModel):
     name: str
-    category: str
     properties: dict
     city: str
     state: str

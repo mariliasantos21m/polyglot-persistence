@@ -18,6 +18,10 @@ def getMongoConnection():
         client.server_info()
 
         #se esse banco de dados não existir ele será criado no momento de inserção do dado
-        return client['geo_app']
+        db = client['geo_app']
+        locations = db["locations"]
+        locations.create_index([("geometry", "2dsphere")])
+
+        return db
     except Exception as e:
         return None

@@ -35,15 +35,40 @@ def get_locations(params):
         query["_id"] = ObjectId(params["id"])
 
     cursor= db.locations.find(query)
-    # cursor= db.locations.find()
     return [serialize(d) for d in cursor]
+
+
+def get_locations_by_search_radius(id: str, search_radius: int):
+    db = getMongoConnection()
+    if db is None: return []
+
+    location_start = db.locations.find_one({"_id": ObjectId(id)})
+    if location_start is None: return []
+
+    coord = location_start["geometry"]["coordinates"] 
+
+    radius = search_radius * 1000
+    response = db.locations.find({
+        "geometry": {
+            "$near": {
+                "$geometry": {
+                    "type": "Point",
+                    "coordinates": coord
+                },
+                "$maxDistance": radius
+            }
+        }
+    })
+
+    return [serialize(d) for d in response]
+
+
 
 def create_location(location: Location):
     db = getMongoConnection()
 
     feature = {
         "name": location.name,
-        "category": location.category,
         "properties": location.properties,
         "geometry": location.geometry.model_dump(),
     }
